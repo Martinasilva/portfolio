@@ -148,23 +148,44 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
       try {
         // Read the actual bytes first. Passing the original URL/blob URL to PDF.js
         // can produce "Invalid PDF structure" when a host returns an HTML fallback.
-        let pdfData: Uint8Array;
-        if (dataUrl.startsWith('data:')) {
-          const comma = dataUrl.indexOf(',');
-          if (comma < 0) throw new Error('Données du PDF invalides');
-          const raw = window.atob(dataUrl.slice(comma + 1));
-          pdfData = new Uint8Array(raw.length);
-          for (let i = 0; i < raw.length; i++) pdfData[i] = raw.charCodeAt(i);
-        } else {
-          const response = await fetch(dataUrl, { cache: 'no-store' });
-          if (!response.ok) throw new Error(`Impossible de charger le PDF (${response.status})`);
-          const buffer = await response.arrayBuffer();
-          pdfData = new Uint8Array(buffer);
+        // Try the saved document first. Older localStorage/KV entries may contain
+        // a stale URL, so fall back to the bundled, known-good PDF in /documents.
+        const fallbackPath = /digcomp|digital competences|competenc/i.test(fileName || dataUrl)
+          ? '/documents/digital-competences-report.pdf'
+          : '/documents/curso-ia-aprendizagem.pdf';
+        const candidates = [...new Set([dataUrl, fallbackPath].filter(Boolean))];
+        let pdfData: Uint8Array | null = null;
+        let lastError: unknown = null;
+        for (const candidate of candidates) {
+          try {
+            if (candidate.startsWith('data:')) {
+              const comma = candidate.indexOf(',');
+              if (comma < 0) throw new Error('Invalid data URL');
+              const raw = window.atob(candidate.slice(comma + 1));
+              const bytes = new Uint8Array(raw.length);
+              for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+              if (new TextDecoder().decode(bytes.slice(0, 1024)).includes('%PDF-')) {
+                pdfData = bytes;
+                break;
+              }
+            } else {
+              const response = await fetch(candidate, { cache: 'no-store' });
+              if (!response.ok) throw new Error(`PDF request failed (${response.status})`);
+              const bytes = new Uint8Array(await response.arrayBuffer());
+              if (new TextDecoder().decode(bytes.slice(0, 1024)).includes('%PDF-')) {
+                pdfData = bytes;
+                break;
+              }
+              throw new Error(`The response from ${candidate} is not a PDF`);
+            }
+          } catch (error) { lastError = error; }
         }
+        if (!pdfData) throw new Error(lang === 'fr'
+          ? 'Impossible de charger le PDF. Vérifiez que le fichier est présent dans le dossier public/documents.'
+          : lang === 'en'
+            ? 'Could not load the PDF. Check that the file exists in public/documents.'
+            : 'Não foi possível carregar o PDF. Confirma se o ficheiro existe na pasta public/documents.');
         if (isCancelled) return;
-        // Reject HTML/404 fallback responses instead of passing them to PDF.js.
-        const signature = new TextDecoder().decode(pdfData.slice(0, 1024));
-        if (!signature.includes('%PDF-')) throw new Error('O ficheiro recebido não é um PDF válido. Verifica o caminho do documento.');
         const loadingTask = pdfjsLib.getDocument({ data: pdfData });
         const doc = await loadingTask.promise;
         if (isCancelled) { await doc.destroy(); return; }
@@ -186,7 +207,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
     return () => {
       isCancelled = true;
     };
-  }, [dataUrl, isPdf]);
+  }, [dataUrl, isPdf, fileName, lang]);
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.2, 2.5));
   const handleZoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.6));
