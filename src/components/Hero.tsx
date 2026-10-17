@@ -4,7 +4,6 @@ import {
   ShieldCheck, Camera, Upload, RotateCcw, Download 
 } from 'lucide-react';
 import { CANDIDATE_PROFILE } from '../data/candidateData';
-import defaultProfilePhoto from '../assets/images/martina-profile.jpg';
 import { Language, TRANSLATIONS } from '../data/i18n';
 import { getUploadedCV, downloadFileFromUrl } from '../data/documentVault';
 import { fetchPortfolioFileDataUrl, uploadPortfolioFile, deletePortfolioFile } from '../data/portfolioCloud';
@@ -34,7 +33,6 @@ export const Hero: React.FC<HeroProps> = ({ currentLang, onSelectTab, onOpenCont
       }
       const saved = localStorage.getItem('martina_custom_profile_photo');
       if (active && saved && saved.startsWith('data:image')) setCustomPhoto(saved);
-      else if (active) setCustomPhoto(defaultProfilePhoto);
     };
     loadPhoto().catch((err) => console.warn('Could not load shared profile photo', err));
     return () => { active = false; };
@@ -65,7 +63,7 @@ export const Hero: React.FC<HeroProps> = ({ currentLang, onSelectTab, onOpenCont
 
   const handleResetPhoto = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCustomPhoto(defaultProfilePhoto);
+    setCustomPhoto(null);
     localStorage.removeItem('martina_custom_profile_photo');
     deletePortfolioFile('profile_photo').catch((err) => console.warn('Could not remove shared photo', err));
   };
@@ -85,7 +83,7 @@ export const Hero: React.FC<HeroProps> = ({ currentLang, onSelectTab, onOpenCont
     }
   };
 
-  const currentDisplayPhoto = customPhoto && (customPhoto.startsWith('data:image') || customPhoto.startsWith('/')) ? customPhoto : null;
+  const currentDisplayPhoto = customPhoto && customPhoto.startsWith('data:image') ? customPhoto : null;
 
   return (
     <section className="relative overflow-hidden border-b border-slate-800 bg-gradient-to-b from-slate-900/60 to-slate-950 py-10 md:py-16">

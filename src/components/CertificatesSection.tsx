@@ -48,6 +48,21 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
   }, []);
 
   const currentCert = certificates.find(c => c.id === selectedId) || certificates[0];
+  const localizedTitle = (cert: CertificateItem) => {
+    if (cert.id === 'ai-uab') {
+      if (currentLang === 'fr') return 'IA et apprentissage : comprendre, utiliser et évaluer';
+      if (currentLang === 'en') return 'AI and Learning: Understand, Use and Evaluate';
+      return 'A Inteligência Artificial e a Aprendizagem: Compreender, Utilizar e Avaliar';
+    }
+    if (cert.id === 'digcomp-l6') {
+      if (currentLang === 'fr') return 'Rapport de compétences numériques — DigComp 2.2 (niveau avancé 6)';
+      if (currentLang === 'en') return 'European Digital Competence Framework (DigComp 2.2) - Advanced Level 6';
+      return 'Relatório de Competências Digitais — DigComp 2.2 (Nível Avançado 6)';
+    }
+    return currentLang === 'fr' ? (cert.titleFr || cert.titleEn || cert.title)
+      : currentLang === 'en' ? (cert.titleEn || cert.title)
+      : cert.title;
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -161,7 +176,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
             }`}
           >
             <Award className="w-4 h-4 text-amber-300" />
-            <span>{index + 1}. {cert.title.length > 35 ? cert.title.substring(0, 35) + '...' : cert.title}</span>
+            <span>{index + 1}. {localizedTitle(cert).length > 35 ? localizedTitle(cert).substring(0, 35) + '...' : localizedTitle(cert)}</span>
             {cert.customUploadedPdfUrl ? (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40">
                 {currentLang === 'pt' ? 'Documento Real' : 'Real Doc'}
@@ -230,7 +245,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
           <div id="cert-section-target" className="w-full max-w-4xl">
             <AuthenticDocumentViewer
               dataUrl={currentCert.customUploadedPdfUrl}
-              title={currentCert.title}
+              title={localizedTitle(currentCert)}
               fileName={currentCert.fileName}
               onReplace={() => fileInputRef.current?.click()}
               lang={currentLang}
@@ -250,7 +265,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
 
               <div className="space-y-2 max-w-xl mx-auto">
                 <h3 className="text-lg sm:text-xl font-bold text-white">
-                  {currentLang === 'pt' ? `Carregar Ficheiro de "${currentCert.title}"` : `Upload File for "${currentCert.title}"`}
+                  {currentLang === 'pt' ? `Carregar Ficheiro de "${localizedTitle(currentCert)}"` : `Upload File for "${localizedTitle(currentCert)}"`}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   {currentLang === 'pt'
@@ -277,7 +292,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
                   <div className="text-[11px] font-semibold text-blue-400 uppercase tracking-wider">
                     {currentLang === 'pt' ? 'Dados Oficiais da Formação' : 'Official Course Details'}
                   </div>
-                  <h4 className="text-base sm:text-lg font-bold text-white mt-0.5">{currentCert.title}</h4>
+                  <h4 className="text-base sm:text-lg font-bold text-white mt-0.5">{localizedTitle(currentCert)}</h4>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-900/60 text-blue-300 border border-blue-700/50">

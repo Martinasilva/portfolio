@@ -53,9 +53,8 @@ const PdfPage: React.FC<{
 
         renderTask = page.render({
           canvasContext: context,
-          canvas: canvas,
           transform: transform as any,
-          viewport: viewport
+          viewport
         });
 
         await renderTask.promise;
@@ -98,7 +97,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
   const [renderError, setRenderError] = useState<string | null>(null);
   const [blobUrl, setBlobUrl] = useState<string>('');
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
-  const [viewEngine, setViewEngine] = useState<'canvas' | 'embed'>('embed');
+  const [viewEngine, setViewEngine] = useState<'canvas' | 'embed'>('canvas');
 
   const isImage = dataUrl.startsWith('data:image');
   const isPdf = !isImage;
@@ -118,16 +117,61 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
     }
   }, [dataUrl]);
 
-  // PDFs are displayed with the browser's native viewer below. This is more
-  // reliable than rendering each page to canvas, which could leave a black area.
+  // Load PDF Document via PDF.js
   useEffect(() => {
-    if (isPdf && dataUrl) {
+    if (!isPdf || !dataUrl) {
       setIsLoading(false);
-      setRenderError(null);
-      setViewEngine('embed');
-    } else {
-      setIsLoading(false);
+      return;
     }
+
+    let isCancelled = false;
+    setIsLoading(true);
+    setRenderError(null);
+
+    const loadDoc = async () => {
+      try {
+        let pdfData: Uint8Array;
+        if (dataUrl.includes('base64,')) {
+          const base64 = dataUrl.split('base64,')[1];
+          const raw = window.atob(base64);
+          pdfData = new Uint8Array(raw.length);
+          for (let i = 0; i < raw.length; i++) {
+            pdfData[i] = raw.charCodeAt(i);
+          }
+        } else {
+          const response = await fetch(dataUrl);
+          const buffer = await response.arrayBuffer();
+          pdfData = new Uint8Array(buffer);
+        }
+
+        const loadingTask = pdfjsLib.getDocument({
+          data: pdfData,
+          cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/cmaps/',
+          cMapPacked: true,
+        });
+
+        const doc = await loadingTask.promise;
+        if (isCancelled) return;
+
+        setPdfDoc(doc);
+        setNumPages(doc.numPages);
+        setIsLoading(false);
+      } catch (err: any) {
+        console.error('Error loading PDF document:', err);
+        if (!isCancelled) {
+          setRenderError(err?.message || 'Erro ao carregar o PDF');
+          setIsLoading(false);
+          // Fallback automatically to embed viewer
+          setViewEngine('embed');
+        }
+      }
+    };
+
+    loadDoc();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [dataUrl, isPdf]);
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.2, 2.5));
@@ -193,19 +237,19 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
               title="Substituir por outro ficheiro"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>{lang === 'pt' ? 'Substituir' : 'Replace'}</span>
+              <span>{lang === 'pt' ? 'Substituir' : lang === 'fr' ? 'Remplacer' : 'Replace'}</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Viewer Body Canvas */}
-      <div className="relative bg-white overflow-auto p-2 sm:p-4 flex flex-col items-center justify-start min-h-[500px] max-h-[850px]">
+      <div className="relative bg-slate-950/90 overflow-auto p-4 sm:p-8 flex flex-col items-center justify-start min-h-[500px] max-h-[850px]">
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-20 space-y-3">
             <RefreshCw className="w-8 h-8 text-blue-400 animate-spin" />
             <p className="text-xs text-slate-300 font-medium">
-              {lang === 'pt' ? 'A abrir documento autêntico...' : 'Opening authentic document...'}
+              {lang === 'pt' ? 'A abrir documento...' : lang === 'fr' ? 'Ouverture du document...' : 'Opening document...'}
             </p>
           </div>
         )}
@@ -220,6 +264,17 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
               className="max-w-full rounded-lg shadow-2xl border border-slate-800 transition-all"
             />
           </div>
+        )}
+
+        {isPdf && blobUrl && (
+          <a
+            href={blobUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mb-4 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:bg-slate-700"
+          >
+            {lang === 'pt' ? 'Abrir PDF numa nova janela' : lang === 'fr' ? 'Ouvrir le PDF dans un nouvel onglet' : 'Open PDF in a new tab'}
+          </a>
         )}
 
         {/* PDF CANVAS RENDERER */}
@@ -238,18 +293,23 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
 
         {/* PDF NATIVE EMBED RENDERER */}
         {isPdf && viewEngine === 'embed' && blobUrl && (
-          <div className="w-full h-[750px] bg-white rounded-xl overflow-hidden border border-slate-300">
-            <iframe
-              src={`${blobUrl}#view=FitH&toolbar=1`}
-              title={title}
-              className="w-full h-full border-none bg-white"
-              style={{ minHeight: '750px', display: 'block', colorScheme: 'light' }}
-            />
+          <div className="w-full h-[750px] bg-slate-900 rounded-xl overflow-hidden border border-slate-700">
+            <object
+              data={`${blobUrl}#view=FitH&toolbar=1`}
+              type="application/pdf"
+              className="w-full h-full"
+            >
+              <iframe
+                src={`${blobUrl}#view=FitH`}
+                title={title}
+                className="w-full h-full border-none bg-white"
+              />
+            </object>
           </div>
         )}
 
         {/* PDF FALLBACK IF ERROR OCCURS */}
-        {renderError && !blobUrl && (
+        {renderError && (
           <div className="w-full max-w-xl p-6 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-4 my-auto">
             <AlertCircle className="w-10 h-10 text-amber-400 mx-auto" />
             <div>

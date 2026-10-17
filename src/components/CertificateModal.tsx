@@ -69,6 +69,21 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
   if (!isOpen) return null;
 
   const currentCert = certificates.find(c => c.id === activeId) || certificates[0];
+  const localizedTitle = (cert: CertificateItem) => {
+    if (cert.id === 'ai-uab') {
+      if (currentLang === 'fr') return 'IA et apprentissage : comprendre, utiliser et évaluer';
+      if (currentLang === 'en') return 'AI and Learning: Understand, Use and Evaluate';
+      return 'A Inteligência Artificial e a Aprendizagem: Compreender, Utilizar e Avaliar';
+    }
+    if (cert.id === 'digcomp-l6') {
+      if (currentLang === 'fr') return 'Rapport de compétences numériques — DigComp 2.2 (niveau avancé 6)';
+      if (currentLang === 'en') return 'European Digital Competence Framework (DigComp 2.2) - Advanced Level 6';
+      return 'Relatório de Competências Digitais — DigComp 2.2 (Nível Avançado 6)';
+    }
+    return currentLang === 'fr' ? (cert.titleFr || cert.titleEn || cert.title)
+      : currentLang === 'en' ? (cert.titleEn || cert.title)
+      : cert.title;
+  };
 
   const handleFileUploadForCurrent = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -138,7 +153,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                 <span>{currentLang === 'pt' ? 'Visualizador de Certificados Oficiais' : 'Official Certificates Viewer'}</span>
                 <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                   <BadgeCheck className="w-3 h-3" />
-                  {currentLang === 'pt' ? 'Documento Autêntico' : 'Authentic Document'}
+                  {currentLang === 'pt' ? 'Documento autêntico' : currentLang === 'fr' ? 'Document authentique' : 'Authentic Document'}
                 </span>
               </h3>
               <p className="text-xs text-slate-400">
@@ -158,8 +173,8 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               {isUploading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
               <span>
                 {currentCert?.customUploadedPdfUrl 
-                  ? (currentLang === 'pt' ? 'Substituir Ficheiro' : 'Replace File') 
-                  : (currentLang === 'pt' ? 'Carregar Meu PDF' : 'Upload Real PDF')}
+                  ? (currentLang === 'pt' ? 'Substituir Ficheiro' : currentLang === 'fr' ? 'Remplacer le fichier' : 'Replace File') 
+                  : (currentLang === 'pt' ? 'Carregar o meu PDF' : currentLang === 'fr' ? 'Charger mon PDF' : 'Upload Real PDF')}
               </span>
             </button>
 
@@ -194,7 +209,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               }`}
             >
               <Award className="w-3.5 h-3.5 text-amber-300" />
-              <span>{index + 1}. {cert.title.length > 30 ? cert.title.substring(0, 30) + '...' : cert.title}</span>
+              <span>{index + 1}. {localizedTitle(cert).length > 30 ? localizedTitle(cert).substring(0, 30) + '...' : localizedTitle(cert)}</span>
               {cert.customUploadedPdfUrl && (
                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-900 text-emerald-300 font-mono">
                   Real
@@ -252,8 +267,8 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               className="px-2.5 py-1 text-xs font-medium rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
             >
               {currentCert?.customUploadedPdfUrl 
-                ? (currentLang === 'pt' ? 'Substituir Ficheiro' : 'Replace File') 
-                : (currentLang === 'pt' ? 'Carregar Ficheiro Oficial' : 'Upload Official File')}
+                ? (currentLang === 'pt' ? 'Substituir Ficheiro' : currentLang === 'fr' ? 'Remplacer le fichier' : 'Replace File') 
+                : (currentLang === 'pt' ? 'Carregar Ficheiro Oficial' : currentLang === 'fr' ? 'Charger le document officiel' : 'Upload Official File')}
             </button>
           </div>
         </div>
@@ -266,7 +281,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             <div id="cert-content-container" className="w-full max-w-4xl">
               <AuthenticDocumentViewer
                 dataUrl={currentCert.customUploadedPdfUrl}
-                title={currentLang === 'fr' ? (currentCert.titleFr || currentCert.titleEn || currentCert.title) : currentLang === 'en' ? (currentCert.titleEn || currentCert.title) : currentCert.title}
+                title={localizedTitle(currentCert)}
                 fileName={currentCert.fileName}
                 onReplace={() => fileInputRef.current?.click()}
                 lang={currentLang}

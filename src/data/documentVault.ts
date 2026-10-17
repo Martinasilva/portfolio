@@ -442,33 +442,6 @@ export async function getVaultCertificates(): Promise<CertificateItem[]> {
       console.warn('Could not load local certificate fallback', err);
     }
 
-    // Bundled originals are the final fallback, so the two supplied certificates
-    // are visible even before administrator uploads are available.
-    const bundledFiles: Record<string, { path: string; name: string }> = {
-      'ai-uab': {
-        path: '/certificates/curso-ia-aprendizagem-uab.pdf',
-        name: 'Curso de IA e Aprendizagem - Universidade Aberta.pdf'
-      },
-      'digcomp-l6': {
-        path: '/certificates/relatorio-competencias-digitais-digcomp.pdf',
-        name: 'Relatorio de Competencias Digitais - DigComp.pdf'
-      }
-    };
-    const bundled = bundledFiles[cert.id];
-    if (bundled) {
-      try {
-        const response = await fetch(bundled.path);
-        if (response.ok) {
-          const blob = await response.blob();
-          const file = new File([blob], bundled.name, { type: 'application/pdf' });
-          const dataUrl = await fileToDataUrl(file);
-          return { ...cert, customUploadedPdfUrl: dataUrl, fileName: bundled.name };
-        }
-      } catch (err) {
-        console.warn(`Could not load bundled certificate ${cert.id}`, err);
-      }
-    }
-
     return cert;
   }));
   return hydrated;
