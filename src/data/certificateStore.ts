@@ -2,6 +2,7 @@ export interface CertificateItem {
   id: string;
   title: string;
   titleEn?: string;
+  titleFr?: string;
   institution: string;
   completionDate: string;
   durationOrLevel: string;
@@ -18,6 +19,7 @@ export const INITIAL_CERTIFICATES: CertificateItem[] = [
     id: 'ai-uab',
     title: 'A Inteligência Artificial e a Aprendizagem: Compreender, Utilizar e Avaliar',
     titleEn: 'AI and Learning: Understand, Use and Evaluate',
+    titleFr: 'IA et apprentissage : comprendre, utiliser et évaluer',
     institution: 'Universidade Aberta (UAb)',
     completionDate: '29 de julho de 2026',
     durationOrLevel: '1 ECTS (26 horas)',
@@ -30,6 +32,7 @@ export const INITIAL_CERTIFICATES: CertificateItem[] = [
     id: 'digcomp-l6',
     title: 'Quadro Europeu de Competências Digitais (DigComp 2.2) - Nível 6 Avançado',
     titleEn: 'European Digital Competence Framework (DigComp 2.2) - Advanced Level 6',
+    titleFr: 'Cadre européen des compétences numériques (DigComp 2.2) - Niveau avancé 6',
     institution: 'DigComp Framework / União Europeia',
     completionDate: '18 de fevereiro de 2026',
     durationOrLevel: 'Nível 6 — Advanced',

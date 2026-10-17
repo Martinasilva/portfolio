@@ -238,18 +238,13 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
 
         {/* PDF NATIVE EMBED RENDERER */}
         {isPdf && viewEngine === 'embed' && blobUrl && (
-          <div className="w-full h-[750px] bg-slate-900 rounded-xl overflow-hidden border border-slate-700">
-            <object
-              data={`${blobUrl}#view=FitH&toolbar=1`}
-              type="application/pdf"
-              className="w-full h-full"
-            >
-              <iframe
-                src={`${blobUrl}#view=FitH`}
-                title={title}
-                className="w-full h-full border-none bg-white"
-              />
-            </object>
+          <div className="w-full h-[750px] bg-white rounded-xl overflow-hidden border border-slate-300">
+            <iframe
+              src={`${blobUrl}#view=FitH&toolbar=1`}
+              title={title}
+              className="w-full h-full border-none bg-white"
+              style={{ minHeight: '750px', display: 'block', colorScheme: 'light' }}
+            />
           </div>
         )}
 

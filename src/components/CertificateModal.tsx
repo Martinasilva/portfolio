@@ -266,7 +266,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             <div id="cert-content-container" className="w-full max-w-4xl">
               <AuthenticDocumentViewer
                 dataUrl={currentCert.customUploadedPdfUrl}
-                title={currentCert.title}
+                title={currentLang === 'fr' ? (currentCert.titleFr || currentCert.titleEn || currentCert.title) : currentLang === 'en' ? (currentCert.titleEn || currentCert.title) : currentCert.title}
                 fileName={currentCert.fileName}
                 onReplace={() => fileInputRef.current?.click()}
                 lang={currentLang}
