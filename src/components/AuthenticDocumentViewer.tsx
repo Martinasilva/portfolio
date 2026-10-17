@@ -36,7 +36,10 @@ const PdfPage: React.FC<{
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const viewport = page.getViewport({ scale });
+        const baseViewport = page.getViewport({ scale: 1 });
+        const availableWidth = Math.max(280, Math.min(820, (canvas.parentElement?.clientWidth || 820) - 24));
+        const fitScale = Math.min(scale, availableWidth / baseViewport.width);
+        const viewport = page.getViewport({ scale: fitScale });
         const context = canvas.getContext('2d');
         if (!context) return;
 
@@ -137,6 +140,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
       setIsLoading(false);
       return;
     }
+    if (!dataUrl.startsWith('data:') && !blobUrl) return;
 
     let isCancelled = false;
     setIsLoading(true);
@@ -153,9 +157,10 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
           for (let i = 0; i < raw.length; i++) pdfData[i] = raw.charCodeAt(i);
           loadingTask = pdfjsLib.getDocument({ data: pdfData });
         } else {
-          // Let PDF.js fetch the bundled PDF directly. This avoids an unnecessary
-          // fetch -> ArrayBuffer conversion and works with the packaged originals.
-          loadingTask = pdfjsLib.getDocument({ url: dataUrl, withCredentials: false });
+          // Load the already-fetched Blob URL. This makes the canvas renderer use
+          // the exact same PDF bytes as the viewer and avoids path/asset routing issues.
+          if (!blobUrl) return;
+          loadingTask = pdfjsLib.getDocument({ url: blobUrl, withCredentials: false });
         }
         const doc = await loadingTask.promise;
         if (isCancelled) { await doc.destroy(); return; }
@@ -168,7 +173,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
         if (!isCancelled) {
           setRenderError(err?.message || 'PDF load error');
           setIsLoading(false);
-          setViewEngine('embed');
+          setViewEngine('canvas');
         }
       }
     };
@@ -177,7 +182,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
     return () => {
       isCancelled = true;
     };
-  }, [dataUrl, isPdf]);
+  }, [dataUrl, isPdf, blobUrl]);
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.2, 2.5));
   const handleZoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.6));
@@ -250,12 +255,22 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
 
       {/* Viewer Body Canvas */}
       <div className="relative bg-slate-950/90 overflow-auto p-4 sm:p-8 flex flex-col items-center justify-start min-h-[500px] max-h-[850px]">
-        {isLoading && (
+        {isLoading && !renderError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-20 space-y-3">
             <RefreshCw className="w-8 h-8 text-blue-400 animate-spin" />
             <p className="text-xs text-slate-300 font-medium">
               {lang === 'pt' ? 'A abrir documento...' : lang === 'fr' ? 'Ouverture du document...' : 'Opening document...'}
             </p>
+          </div>
+        )}
+
+        {renderError && (
+          <div className="w-full max-w-2xl rounded-xl border border-rose-500/40 bg-slate-900 px-4 py-3 text-sm text-rose-200" role="alert">
+            {lang === 'fr'
+              ? `Impossible d’afficher le document PDF. ${renderError}`
+              : lang === 'en'
+                ? `The PDF could not be displayed. ${renderError}`
+                : `Não foi possível apresentar o PDF. ${renderError}`}
           </div>
         )}
 

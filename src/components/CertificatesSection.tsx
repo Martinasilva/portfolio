@@ -181,7 +181,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
             <span>{index + 1}. {localizedTitle(cert).length > 35 ? localizedTitle(cert).substring(0, 35) + '...' : localizedTitle(cert)}</span>
             {cert.customUploadedPdfUrl ? (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40">
-                {currentLang === 'pt' ? 'Documento original' : currentLang === 'fr' ? 'Document original' : 'Original Document'}
+                {currentLang === 'pt' ? 'Documento original' : currentLang === 'fr' ? 'Document d’origine' : 'Original Document'}
               </span>
             ) : (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
