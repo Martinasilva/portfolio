@@ -144,43 +144,34 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
 
     const loadDoc = async () => {
       try {
-        let pdfData: Uint8Array;
-        if (dataUrl.includes('base64,')) {
-          const base64 = dataUrl.split('base64,')[1];
-          const raw = window.atob(base64);
-          pdfData = new Uint8Array(raw.length);
-          for (let i = 0; i < raw.length; i++) {
-            pdfData[i] = raw.charCodeAt(i);
-          }
+        let loadingTask: pdfjsLib.PDFDocumentLoadingTask;
+        if (dataUrl.startsWith('data:')) {
+          const comma = dataUrl.indexOf(',');
+          if (comma < 0) throw new Error('Invalid document data');
+          const raw = window.atob(dataUrl.slice(comma + 1));
+          const pdfData = new Uint8Array(raw.length);
+          for (let i = 0; i < raw.length; i++) pdfData[i] = raw.charCodeAt(i);
+          loadingTask = pdfjsLib.getDocument({ data: pdfData });
         } else {
-          const response = await fetch(dataUrl);
-          const buffer = await response.arrayBuffer();
-          pdfData = new Uint8Array(buffer);
+          // Let PDF.js fetch the bundled PDF directly. This avoids an unnecessary
+          // fetch -> ArrayBuffer conversion and works with the packaged originals.
+          loadingTask = pdfjsLib.getDocument({ url: dataUrl, withCredentials: false });
         }
-
-        const loadingTask = pdfjsLib.getDocument({
-          data: pdfData,
-          cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/cmaps/',
-          cMapPacked: true,
-        });
-
         const doc = await loadingTask.promise;
-        if (isCancelled) return;
-
+        if (isCancelled) { await doc.destroy(); return; }
         setPdfDoc(doc);
         setNumPages(doc.numPages);
+        setRenderError(null);
         setIsLoading(false);
       } catch (err: any) {
         console.error('Error loading PDF document:', err);
         if (!isCancelled) {
-          setRenderError(err?.message || 'Erro ao carregar o PDF');
+          setRenderError(err?.message || 'PDF load error');
           setIsLoading(false);
-          // Fallback automatically to embed viewer
           setViewEngine('embed');
         }
       }
     };
-
     loadDoc();
 
     return () => {
@@ -311,25 +302,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
           </div>
         )}
 
-        {/* PDF FALLBACK IF ERROR OCCURS */}
-        {renderError && (
-          <div className="w-full max-w-xl p-6 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-4 my-auto">
-            <AlertCircle className="w-10 h-10 text-amber-400 mx-auto" />
-            <div>
-              <h4 className="text-sm font-bold text-white">
-                {lang === 'pt' ? 'Não foi possível apresentar o documento' : lang === 'fr' ? 'Impossible d’afficher le document' : 'Could not display the document'}
-              </h4>
-              <p className="text-xs text-slate-400 mt-1">
-                {lang === 'pt'
-                  ? 'Não foi possível apresentar este documento.'
-                  : lang === 'fr'
-                    ? 'Impossible d’afficher ce document.'
-                    : 'This document could not be displayed.'}
-              </p>
-            </div>
 
-          </div>
-        )}
       </div>
 
       {/* Footer bar with page counts for multi-page documents */}

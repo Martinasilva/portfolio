@@ -122,15 +122,17 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold mb-2">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>{currentLang === 'pt' ? 'Documentos Oficiais & Certificados Originais' : 'Official Credentials & Authentic Files'}</span>
+            <span>{currentLang === 'pt' ? 'Documentos Oficiais e Certificados Originais' : currentLang === 'fr' ? 'Documents officiels et certificats originaux' : 'Official Credentials & Authentic Files'}</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            {currentLang === 'pt' ? 'Certificados & Documentos Oficiais' : 'Official Certificates & Documents'}
+            {currentLang === 'pt' ? 'Certificados e Documentos Oficiais' : currentLang === 'fr' ? 'Certificats et documents officiels' : 'Official Certificates & Documents'}
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
-            {currentLang === 'pt' 
-              ? 'Consulte as descrições dos certificados oficiais em nome de Martina Morais da Silva. Pode visualizar as informações e adicionar mais certificados quando quiser.' 
-              : 'Inspect descriptions of official certificates issued to Martina Morais da Silva. You can view the certificate information and add more certificates anytime.'}
+            {currentLang === 'pt'
+              ? 'Consulte as descrições dos certificados oficiais em nome de Martina Morais da Silva. Pode visualizar as informações e adicionar mais certificados quando quiser.'
+              : currentLang === 'fr'
+                ? 'Consultez les descriptions des certificats officiels au nom de Martina Morais da Silva. Vous pouvez afficher les informations et ajouter des certificats à tout moment.'
+                : 'Inspect descriptions of official certificates issued to Martina Morais da Silva. You can view the certificate information and add more certificates anytime.'}
           </p>
         </div>
 
@@ -141,7 +143,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
             className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>{currentLang === 'pt' ? 'Adicionar Mais Certificados' : 'Add More Certificates'}</span>
+            <span>{currentLang === 'pt' ? 'Adicionar mais certificados' : currentLang === 'fr' ? 'Ajouter des certificats' : 'Add More Certificates'}</span>
           </button>
 
           {/* Upload / Replace PDF */}
@@ -149,13 +151,13 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
             className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-blue-300 bg-blue-950/70 border border-blue-700/80 hover:bg-blue-900 rounded-xl transition-colors cursor-pointer"
-            title={currentCert?.customUploadedPdfUrl ? 'Substituir ficheiro deste certificado' : 'Carregar ficheiro original deste certificado'}
+            title={currentLang === 'pt' ? (currentCert?.customUploadedPdfUrl ? 'Substituir o ficheiro deste certificado' : 'Carregar o ficheiro original deste certificado') : currentLang === 'fr' ? (currentCert?.customUploadedPdfUrl ? 'Remplacer le fichier de ce certificat' : 'Charger le fichier original de ce certificat') : (currentCert?.customUploadedPdfUrl ? 'Replace this certificate file' : 'Upload this certificate’s original file')}
           >
             {isUploading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
             <span>
-              {currentCert?.customUploadedPdfUrl 
-                ? (currentLang === 'pt' ? 'Alterar / Substituir Documento' : 'Replace File') 
-                : (currentLang === 'pt' ? 'Carregar Meu Documento (PDF)' : 'Upload Real Document')}
+              {currentCert?.customUploadedPdfUrl
+                ? (currentLang === 'pt' ? 'Alterar / substituir documento' : currentLang === 'fr' ? 'Modifier / remplacer le document' : 'Change / Replace Document')
+                : (currentLang === 'pt' ? 'Carregar o meu documento (PDF)' : currentLang === 'fr' ? 'Charger mon document (PDF)' : 'Upload My Document (PDF)')}
             </span>
           </button>
 
@@ -179,11 +181,11 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
             <span>{index + 1}. {localizedTitle(cert).length > 35 ? localizedTitle(cert).substring(0, 35) + '...' : localizedTitle(cert)}</span>
             {cert.customUploadedPdfUrl ? (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40">
-                {currentLang === 'pt' ? 'Documento Real' : 'Real Doc'}
+                {currentLang === 'pt' ? 'Documento original' : currentLang === 'fr' ? 'Document original' : 'Original Document'}
               </span>
             ) : (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-                {currentLang === 'pt' ? 'Pendente' : 'Pending'}
+                {currentLang === 'pt' ? 'Pendente' : currentLang === 'fr' ? 'En attente' : 'Pending'}
               </span>
             )}
           </button>
@@ -196,18 +198,22 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
           <div className="flex items-center gap-2 text-emerald-400">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>
-              {currentLang === 'pt' 
-                ? `A visualizar o seu documento oficial: "${currentCert.fileName || 'certificado.pdf'}" (100% autêntico como está).` 
-                : `Viewing your authentic official file: "${currentCert.fileName || 'certificate.pdf'}"`}
+              {currentLang === 'pt'
+                ? `A visualizar o documento original: "${currentCert.fileName || 'certificado.pdf'}".`
+                : currentLang === 'fr'
+                  ? `Affichage du document original : "${currentCert.fileName || 'certificat.pdf'}".`
+                  : `Viewing the original document: "${currentCert.fileName || 'certificate.pdf'}".`}
             </span>
           </div>
         ) : (
           <div className="flex items-center gap-2 text-amber-300">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>
-              {currentLang === 'pt' 
-                ? `Quer ver exatamente o seu documento emitido? Carregue aqui o ficheiro PDF ou imagem para aparecer tal como está!` 
-                : `Want to view the exact original document? Upload the PDF or image file to display it natively!`}
+              {currentLang === 'pt'
+                ? 'Para visualizar o documento original, carregue o ficheiro PDF ou imagem.'
+                : currentLang === 'fr'
+                  ? 'Pour afficher le document original, chargez le fichier PDF ou image.'
+                  : 'To view the original document, upload the PDF or image file.'}
             </span>
           </div>
         )}
@@ -230,7 +236,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
             <button
               onClick={() => handleDeleteCertificate(currentCert.id)}
               className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
-              title="Remover certificado"
+              title={currentLang === 'pt' ? 'Remover certificado' : currentLang === 'fr' ? 'Supprimer le certificat' : 'Delete certificate'}
             >
               <Trash2 className="w-4 h-4" />
             </button>
