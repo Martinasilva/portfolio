@@ -140,28 +140,32 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
       setIsLoading(false);
       return;
     }
-    if (!dataUrl.startsWith('data:') && !blobUrl) return;
-
     let isCancelled = false;
     setIsLoading(true);
     setRenderError(null);
 
     const loadDoc = async () => {
       try {
-        let loadingTask: pdfjsLib.PDFDocumentLoadingTask;
+        // Read the actual bytes first. Passing the original URL/blob URL to PDF.js
+        // can produce "Invalid PDF structure" when a host returns an HTML fallback.
+        let pdfData: Uint8Array;
         if (dataUrl.startsWith('data:')) {
           const comma = dataUrl.indexOf(',');
-          if (comma < 0) throw new Error('Invalid document data');
+          if (comma < 0) throw new Error('Données du PDF invalides');
           const raw = window.atob(dataUrl.slice(comma + 1));
-          const pdfData = new Uint8Array(raw.length);
+          pdfData = new Uint8Array(raw.length);
           for (let i = 0; i < raw.length; i++) pdfData[i] = raw.charCodeAt(i);
-          loadingTask = pdfjsLib.getDocument({ data: pdfData });
         } else {
-          // Load the already-fetched Blob URL. This makes the canvas renderer use
-          // the exact same PDF bytes as the viewer and avoids path/asset routing issues.
-          if (!blobUrl) return;
-          loadingTask = pdfjsLib.getDocument({ url: blobUrl, withCredentials: false });
+          const response = await fetch(dataUrl, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`Impossible de charger le PDF (${response.status})`);
+          const buffer = await response.arrayBuffer();
+          pdfData = new Uint8Array(buffer);
         }
+        if (isCancelled) return;
+        // Reject HTML/404 fallback responses instead of passing them to PDF.js.
+        const signature = new TextDecoder().decode(pdfData.slice(0, 1024));
+        if (!signature.includes('%PDF-')) throw new Error('O ficheiro recebido não é um PDF válido. Verifica o caminho do documento.');
+        const loadingTask = pdfjsLib.getDocument({ data: pdfData });
         const doc = await loadingTask.promise;
         if (isCancelled) { await doc.destroy(); return; }
         setPdfDoc(doc);
@@ -182,7 +186,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
     return () => {
       isCancelled = true;
     };
-  }, [dataUrl, isPdf, blobUrl]);
+  }, [dataUrl, isPdf]);
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.2, 2.5));
   const handleZoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.6));
