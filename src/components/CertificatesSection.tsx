@@ -24,12 +24,6 @@ interface CertificatesSectionProps {
   currentLang: Language;
 }
 
-function getCertificateTitle(cert: CertificateItem, lang: Language): string {
-  if (lang === 'en') return cert.titleEn || cert.title;
-  if (lang === 'fr') return cert.titleFr || cert.titleEn || cert.title;
-  return cert.title;
-}
-
 export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ currentLang }) => {
   const [certificates, setCertificates] = useState<CertificateItem[]>(INITIAL_CERTIFICATES);
   const [selectedId, setSelectedId] = useState<string>('ai-uab');
@@ -167,7 +161,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
             }`}
           >
             <Award className="w-4 h-4 text-amber-300" />
-            <span>{index + 1}. {getCertificateTitle(cert, currentLang).length > 35 ? getCertificateTitle(cert, currentLang).substring(0, 35) + '...' : getCertificateTitle(cert, currentLang)}</span>
+            <span>{index + 1}. {cert.title.length > 35 ? cert.title.substring(0, 35) + '...' : cert.title}</span>
             {cert.customUploadedPdfUrl ? (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40">
                 {currentLang === 'pt' ? 'Documento Real' : 'Real Doc'}
@@ -236,7 +230,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
           <div id="cert-section-target" className="w-full max-w-4xl">
             <AuthenticDocumentViewer
               dataUrl={currentCert.customUploadedPdfUrl}
-              title={getCertificateTitle(currentCert, currentLang)}
+              title={currentCert.title}
               fileName={currentCert.fileName}
               onReplace={() => fileInputRef.current?.click()}
               lang={currentLang}
@@ -256,7 +250,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
 
               <div className="space-y-2 max-w-xl mx-auto">
                 <h3 className="text-lg sm:text-xl font-bold text-white">
-                  {currentLang === 'pt' ? `Carregar Ficheiro de "${getCertificateTitle(currentCert, currentLang)}"` : currentLang === 'fr' ? `Charger le fichier pour « ${getCertificateTitle(currentCert, currentLang)} »` : `Upload File for "${getCertificateTitle(currentCert, currentLang)}"`}
+                  {currentLang === 'pt' ? `Carregar Ficheiro de "${currentCert.title}"` : `Upload File for "${currentCert.title}"`}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   {currentLang === 'pt'
@@ -283,7 +277,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
                   <div className="text-[11px] font-semibold text-blue-400 uppercase tracking-wider">
                     {currentLang === 'pt' ? 'Dados Oficiais da Formação' : 'Official Course Details'}
                   </div>
-                  <h4 className="text-base sm:text-lg font-bold text-white mt-0.5">{getCertificateTitle(currentCert, currentLang)}</h4>
+                  <h4 className="text-base sm:text-lg font-bold text-white mt-0.5">{currentCert.title}</h4>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-900/60 text-blue-300 border border-blue-700/50">

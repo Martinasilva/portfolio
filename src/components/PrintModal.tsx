@@ -414,7 +414,7 @@ export const PrintModal: React.FC<PrintModalProps> = ({
                 <article key={cert.id} className="bg-white text-slate-900 rounded-xl p-7 border border-slate-300 shadow-sm space-y-3 break-inside-avoid">
                   <div className="border-b border-slate-200 pb-3">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-blue-900">{cert.institution}</p>
-                    <h3 className="mt-1 text-base font-bold text-slate-950">{currentLang === 'en' ? (cert.titleEn || cert.title) : currentLang === 'fr' ? (cert.titleFr || cert.titleEn || cert.title) : cert.title}</h3>
+                    <h3 className="mt-1 text-base font-bold text-slate-950">{currentLang === 'en' && cert.titleEn ? cert.titleEn : cert.title}</h3>
                     <p className="mt-1 text-xs text-slate-500">{cert.completionDate} · {cert.durationOrLevel}</p>
                   </div>
                   <p className="text-sm leading-relaxed text-slate-700">{cert.description || (currentLang === 'pt' ? 'Formação complementar relevante para o desenvolvimento de competências técnicas e profissionais.' : currentLang === 'fr' ? 'Formation complémentaire pertinente pour le développement de compétences techniques et professionnelles.' : 'Additional training relevant to the development of technical and professional skills.')}</p>

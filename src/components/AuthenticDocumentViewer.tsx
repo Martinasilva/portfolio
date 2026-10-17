@@ -37,10 +37,7 @@ const PdfPage: React.FC<{
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const baseViewport = page.getViewport({ scale: 1 });
-        const maxWidth = Math.max(280, Math.min(820, (canvas.parentElement?.clientWidth || 820) - 24));
-        const fitScale = Math.min(scale, maxWidth / baseViewport.width);
-        const viewport = page.getViewport({ scale: fitScale });
+        const viewport = page.getViewport({ scale });
         const context = canvas.getContext('2d');
         if (!context) return;
 
@@ -54,12 +51,11 @@ const PdfPage: React.FC<{
           ? [outputScale, 0, 0, outputScale, 0, 0] 
           : undefined;
 
-        // PDF.js requires either canvasContext or canvas, not both.
-        // Passing both can stop the page from rendering and leave a blank white panel.
         renderTask = page.render({
           canvasContext: context,
+          canvas: canvas,
           transform: transform as any,
-          viewport
+          viewport: viewport
         });
 
         await renderTask.promise;
@@ -102,7 +98,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
   const [renderError, setRenderError] = useState<string | null>(null);
   const [blobUrl, setBlobUrl] = useState<string>('');
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
-  const [viewEngine, setViewEngine] = useState<'canvas' | 'embed'>('canvas');
+  const [viewEngine, setViewEngine] = useState<'canvas' | 'embed'>('embed');
 
   const isImage = dataUrl.startsWith('data:image');
   const isPdf = !isImage;
@@ -122,55 +118,16 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
     }
   }, [dataUrl]);
 
-  // Render PDFs with PDF.js directly into canvases. This avoids relying on the
-  // browser's embedded PDF viewer, which can appear blank inside an iframe.
+  // PDFs are displayed with the browser's native viewer below. This is more
+  // reliable than rendering each page to canvas, which could leave a black area.
   useEffect(() => {
-    let cancelled = false;
-    let loadedPdf: pdfjsLib.PDFDocumentProxy | null = null;
-
-    const loadPdf = async () => {
-      if (!isPdf || !dataUrl) {
-        setIsLoading(false);
-        setPdfDoc(null);
-        return;
-      }
-      setIsLoading(true);
+    if (isPdf && dataUrl) {
+      setIsLoading(false);
       setRenderError(null);
-      setPdfDoc(null);
-      try {
-        let bytes: Uint8Array;
-        if (dataUrl.startsWith('blob:')) {
-          const response = await fetch(dataUrl);
-          bytes = new Uint8Array(await response.arrayBuffer());
-        } else {
-          const blob = dataUrlToBlob(dataUrl);
-          bytes = new Uint8Array(await blob.arrayBuffer());
-        }
-        const loadingTask = pdfjsLib.getDocument({ data: bytes });
-        loadedPdf = await loadingTask.promise;
-        if (cancelled) {
-          await loadedPdf.destroy();
-          return;
-        }
-        setNumPages(loadedPdf.numPages);
-        setPdfDoc(loadedPdf);
-        setViewEngine('canvas');
-      } catch (error) {
-        console.error('Could not load PDF with PDF.js:', error);
-        if (!cancelled) {
-          setRenderError('PDF_LOAD_FAILED');
-          setViewEngine('embed');
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    };
-
-    void loadPdf();
-    return () => {
-      cancelled = true;
-      if (loadedPdf) void loadedPdf.destroy();
-    };
+      setViewEngine('embed');
+    } else {
+      setIsLoading(false);
+    }
   }, [dataUrl, isPdf]);
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.2, 2.5));
@@ -179,9 +136,9 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
 
 
   return (
-    <div className="w-full bg-white border border-slate-300 rounded-2xl shadow-lg overflow-hidden flex flex-col">
+    <div className="w-full bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
       {/* Top Document Controls Bar */}
-      <div className="px-4 py-3 bg-slate-900 border-b border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+      <div className="px-4 py-3 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
         
         {/* Document Info */}
         <div className="flex items-center gap-2 truncate max-w-sm sm:max-w-md">

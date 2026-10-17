@@ -194,7 +194,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               }`}
             >
               <Award className="w-3.5 h-3.5 text-amber-300" />
-              <span>{index + 1}. {(() => { const title = currentLang === 'en' ? (cert.titleEn || cert.title) : currentLang === 'fr' ? (cert.titleFr || cert.titleEn || cert.title) : cert.title; return title.length > 30 ? title.substring(0, 30) + '...' : title; })()}</span>
+              <span>{index + 1}. {cert.title.length > 30 ? cert.title.substring(0, 30) + '...' : cert.title}</span>
               {cert.customUploadedPdfUrl && (
                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-900 text-emerald-300 font-mono">
                   Real
