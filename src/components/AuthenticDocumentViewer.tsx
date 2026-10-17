@@ -54,11 +54,12 @@ const PdfPage: React.FC<{
           ? [outputScale, 0, 0, outputScale, 0, 0] 
           : undefined;
 
+        // PDF.js requires either canvasContext or canvas, not both.
+        // Passing both can stop the page from rendering and leave a blank white panel.
         renderTask = page.render({
           canvasContext: context,
-          canvas: canvas,
           transform: transform as any,
-          viewport: viewport
+          viewport
         });
 
         await renderTask.promise;

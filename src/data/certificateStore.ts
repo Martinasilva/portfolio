@@ -30,7 +30,7 @@ export const INITIAL_CERTIFICATES: CertificateItem[] = [
   },
   {
     id: 'digcomp-l6',
-    title: 'Quadro Europeu de Competências Digitais (DigComp 2.2) - Nível 6 Avançado',
+    title: 'Relatório de Competências Digitais — DigComp 2.2 (Nível Avançado 6)',
     titleEn: 'European Digital Competence Framework (DigComp 2.2) - Advanced Level 6',
     titleFr: 'Cadre européen des compétences numériques (DigComp 2.2) - Niveau avancé 6',
     institution: 'DigComp Framework / União Europeia',
