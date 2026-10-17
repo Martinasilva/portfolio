@@ -5,7 +5,6 @@ import {
   ZoomIn, ZoomOut, RotateCcw, 
   FileText, CheckCircle2, AlertCircle, RefreshCw
 } from 'lucide-react';
-import { dataUrlToBlob } from '../data/documentVault';
 
 // Set pdfjs worker URL
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
@@ -104,17 +103,32 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
 
   // Create clean Blob URL for external viewing, embed, or fallback
   useEffect(() => {
-    try {
-      const blob = dataUrlToBlob(dataUrl);
-      const url = URL.createObjectURL(blob);
-      setBlobUrl(url);
-      return () => {
-        URL.revokeObjectURL(url);
-      };
-    } catch (err) {
-      console.warn('Failed to generate blob URL from dataUrl:', err);
-      setBlobUrl(dataUrl);
-    }
+    let objectUrl = '';
+    let cancelled = false;
+    const makeUrl = async () => {
+      try {
+        if (dataUrl.startsWith('data:')) {
+          const response = await fetch(dataUrl);
+          const blob = await response.blob();
+          objectUrl = URL.createObjectURL(blob);
+        } else if (dataUrl.startsWith('blob:')) {
+          objectUrl = dataUrl;
+        } else {
+          const response = await fetch(dataUrl);
+          if (!response.ok) throw new Error(`PDF request failed (${response.status})`);
+          objectUrl = URL.createObjectURL(await response.blob());
+        }
+        if (!cancelled) setBlobUrl(objectUrl);
+      } catch (err) {
+        console.error('Failed to prepare document for viewing:', err);
+        if (!cancelled) setRenderError(lang === 'fr' ? 'Impossible de charger le PDF.' : lang === 'en' ? 'Could not load the PDF.' : 'Não foi possível carregar o PDF.');
+      }
+    };
+    makeUrl();
+    return () => {
+      cancelled = true;
+      if (objectUrl && !dataUrl.startsWith('blob:')) URL.revokeObjectURL(objectUrl);
+    };
   }, [dataUrl]);
 
   // Load PDF Document via PDF.js
@@ -205,7 +219,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
               <button
                 onClick={handleZoomOut}
                 className="p-1.5 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
-                title="Reduzir Zoom"
+                title={lang === 'pt' ? 'Reduzir zoom' : lang === 'fr' ? 'Réduire le zoom' : 'Zoom out'}
               >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
@@ -215,14 +229,14 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
               <button
                 onClick={handleZoomIn}
                 className="p-1.5 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
-                title="Aumentar Zoom"
+                title={lang === 'pt' ? 'Aumentar zoom' : lang === 'fr' ? 'Agrandir le zoom' : 'Zoom in'}
               >
                 <ZoomIn className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={handleResetZoom}
                 className="p-1.5 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer text-slate-400"
-                title="Repor Zoom"
+                title={lang === 'pt' ? 'Repor zoom' : lang === 'fr' ? 'Réinitialiser le zoom' : 'Reset zoom'}
               >
                 <RotateCcw className="w-3 h-3" />
               </button>
@@ -234,7 +248,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
             <button
               onClick={onReplace}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer text-xs"
-              title="Substituir por outro ficheiro"
+              title={lang === 'pt' ? 'Substituir por outro ficheiro' : lang === 'fr' ? 'Remplacer le document' : 'Replace document'}
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>{lang === 'pt' ? 'Substituir' : lang === 'fr' ? 'Remplacer' : 'Replace'}</span>
@@ -264,17 +278,6 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
               className="max-w-full rounded-lg shadow-2xl border border-slate-800 transition-all"
             />
           </div>
-        )}
-
-        {isPdf && blobUrl && (
-          <a
-            href={blobUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mb-4 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:bg-slate-700"
-          >
-            {lang === 'pt' ? 'Abrir PDF numa nova janela' : lang === 'fr' ? 'Ouvrir le PDF dans un nouvel onglet' : 'Open PDF in a new tab'}
-          </a>
         )}
 
         {/* PDF CANVAS RENDERER */}
@@ -314,12 +317,14 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
             <AlertCircle className="w-10 h-10 text-amber-400 mx-auto" />
             <div>
               <h4 className="text-sm font-bold text-white">
-                {lang === 'pt' ? 'Documento Pronto para Visualização' : 'Document Ready to View'}
+                {lang === 'pt' ? 'Não foi possível apresentar o documento' : lang === 'fr' ? 'Impossible d’afficher le document' : 'Could not display the document'}
               </h4>
               <p className="text-xs text-slate-400 mt-1">
-                {lang === 'pt' 
-                  ? 'Não foi possível apresentar este documento. Consulte a descrição do certificado.' 
-                  : 'This document could not be displayed. Please consult the certificate description.'}
+                {lang === 'pt'
+                  ? 'Não foi possível apresentar este documento.'
+                  : lang === 'fr'
+                    ? 'Impossible d’afficher ce document.'
+                    : 'This document could not be displayed.'}
               </p>
             </div>
 
@@ -331,10 +336,10 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
       {isPdf && numPages > 1 && (
         <div className="px-4 py-2 bg-slate-950 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
           <span>
-            {lang === 'pt' ? `Total de páginas: ${numPages}` : `Total pages: ${numPages}`}
+            {lang === 'pt' ? `Total de páginas: ${numPages}` : lang === 'fr' ? `Nombre total de pages : ${numPages}` : `Total pages: ${numPages}`}
           </span>
           <span className="font-mono text-[11px] text-emerald-400">
-            {lang === 'pt' ? 'Documento Autêntico Verificado' : 'Authentic Verified Document'}
+            {lang === 'pt' ? 'Documento original verificado' : lang === 'fr' ? 'Document original vérifié' : 'Verified original document'}
           </span>
         </div>
       )}

@@ -442,7 +442,10 @@ export async function getVaultCertificates(): Promise<CertificateItem[]> {
       console.warn('Could not load local certificate fallback', err);
     }
 
-    return cert;
+    // Packaged originals are the guaranteed fallback, so the certificate viewer
+    // opens the actual PDF even when Cloudflare KV has no uploaded copy.
+    const bundledPdf = INITIAL_CERTIFICATES.find(item => item.id === cert.id)?.customUploadedPdfUrl;
+    return bundledPdf ? { ...cert, customUploadedPdfUrl: bundledPdf } : cert;
   }));
   return hydrated;
 }

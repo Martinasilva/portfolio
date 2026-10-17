@@ -26,7 +26,8 @@ export const INITIAL_CERTIFICATES: CertificateItem[] = [
     category: 'ai',
     description: 'Certificado de Formação Contínua da Universidade Aberta. Abrange compreensão teórica e prática de inteligência artificial, avaliação crítica de resultados gerados por IA, limitações algorítmicas, proteção de dados e aplicação profissional em contexto organizacional.',
     verificationCode: 'Registo UAb: 6904414939MS',
-    fileName: 'Certificado_IA_Universidade_Aberta.pdf'
+    fileName: 'Certificado_IA_Universidade_Aberta.pdf',
+    customUploadedPdfUrl: '/documents/curso-ia-aprendizagem.pdf'
   },
   {
     id: 'digcomp-l6',
@@ -39,7 +40,8 @@ export const INITIAL_CERTIFICATES: CertificateItem[] = [
     category: 'digcomp',
     description: 'Relatório oficial do Quadro Europeu de Competências Digitais para Cidadãos (DigComp 2.2). Atingiu o Nível 6 Avançado em todas as cinco áreas-chave: 1. Literacia de informação e dados; 2. Comunicação e colaboração; 3. Criação de conteúdos digitais; 4. Segurança e cibersegurança; 5. Resolução de problemas técnicos.',
     verificationCode: 'Classificação Europass DigComp: Nível 6',
-    fileName: 'Relatorio_DigComp_Nivel_6.pdf'
+    fileName: 'Digital competences report.pdf',
+    customUploadedPdfUrl: '/documents/digital-competences-report.pdf'
   }
 ];
 

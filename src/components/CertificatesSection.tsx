@@ -221,8 +221,8 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
             <Upload className="w-3.5 h-3.5" />
             <span>
               {currentCert?.customUploadedPdfUrl 
-                ? (currentLang === 'pt' ? 'Substituir Documento' : 'Replace Document') 
-                : (currentLang === 'pt' ? 'Carregar Documento Oficial' : 'Upload Official Document')}
+                ? (currentLang === 'pt' ? 'Substituir documento' : currentLang === 'fr' ? 'Remplacer le document' : 'Replace document') 
+                : (currentLang === 'pt' ? 'Carregar documento oficial' : currentLang === 'fr' ? 'Charger le document officiel' : 'Upload official document')}
             </span>
           </button>
           
@@ -265,12 +265,14 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
 
               <div className="space-y-2 max-w-xl mx-auto">
                 <h3 className="text-lg sm:text-xl font-bold text-white">
-                  {currentLang === 'pt' ? `Carregar Ficheiro de "${localizedTitle(currentCert)}"` : `Upload File for "${localizedTitle(currentCert)}"`}
+                  {currentLang === 'pt' ? `Carregar ficheiro de «${localizedTitle(currentCert)}»` : currentLang === 'fr' ? `Charger le fichier « ${localizedTitle(currentCert)} »` : `Upload file for “${localizedTitle(currentCert)}”`}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   {currentLang === 'pt'
-                    ? 'Carregue o ficheiro original (PDF ou Imagem) do seu certificado emitido pela entidade para que os recrutadores e visitantes vejam o seu documento exatamente como ele é. Pode substituí-lo ou alterá-lo quando quiser.'
-                    : 'Upload your authentic certificate file (PDF or Image) issued by the institution so recruiters see your document exactly as it is.'}
+                    ? 'Carregue o ficheiro original (PDF ou imagem) emitido pela entidade. Pode substituí-lo quando quiser.'
+                    : currentLang === 'fr'
+                      ? 'Chargez le fichier original (PDF ou image) délivré par l’organisme. Vous pourrez le remplacer à tout moment.'
+                      : 'Upload the original PDF or image issued by the institution. You can replace it at any time.'}
                 </p>
               </div>
 
@@ -280,7 +282,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
                   className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all shadow-lg shadow-blue-600/25 cursor-pointer"
                 >
                   <Upload className="w-4 h-4" />
-                  <span>{currentLang === 'pt' ? 'Carregar Ficheiro Oficial (PDF ou Imagem)' : 'Upload Official File (PDF or Image)'}</span>
+                  <span>{currentLang === 'pt' ? 'Carregar ficheiro oficial (PDF ou imagem)' : currentLang === 'fr' ? 'Charger le fichier officiel (PDF ou image)' : 'Upload official file (PDF or image)'}</span>
                 </button>
               </div>
             </div>
@@ -290,7 +292,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-4">
                 <div>
                   <div className="text-[11px] font-semibold text-blue-400 uppercase tracking-wider">
-                    {currentLang === 'pt' ? 'Dados Oficiais da Formação' : 'Official Course Details'}
+                    {currentLang === 'pt' ? 'Dados oficiais da formação' : currentLang === 'fr' ? 'Informations officielles sur la formation' : 'Official course details'}
                   </div>
                   <h4 className="text-base sm:text-lg font-bold text-white mt-0.5">{localizedTitle(currentCert)}</h4>
                 </div>
@@ -306,17 +308,17 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <span className="text-slate-400">{currentLang === 'pt' ? 'Entidade Emissora:' : 'Issuing Institution:'}</span>
+                  <span className="text-slate-400">{currentLang === 'pt' ? 'Entidade emissora:' : currentLang === 'fr' ? 'Organisme émetteur :' : 'Issuing institution:'}</span>
                   <p className="font-semibold text-slate-200 mt-0.5">{currentCert?.institution}</p>
                 </div>
                 <div>
-                  <span className="text-slate-400">{currentLang === 'pt' ? 'Registo / Validação:' : 'Registration / Validation:'}</span>
+                  <span className="text-slate-400">{currentLang === 'pt' ? 'Registo / validação:' : currentLang === 'fr' ? 'Enregistrement / validation :' : 'Registration / validation:'}</span>
                   <p className="font-mono text-emerald-400 mt-0.5">{currentCert?.verificationCode || 'Registo Oficial Válido'}</p>
                 </div>
               </div>
 
               <div className="pt-2 text-xs text-slate-300 leading-relaxed">
-                <span className="text-slate-400 block mb-1">{currentLang === 'pt' ? 'Âmbito das Competências:' : 'Competencies Scope:'}</span>
+                <span className="text-slate-400 block mb-1">{currentLang === 'pt' ? 'Âmbito das competências:' : currentLang === 'fr' ? 'Domaine de compétences :' : 'Competency scope:'}</span>
                 <p>{currentCert?.description}</p>
               </div>
             </div>
