@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* A4 Sheet styling for screen preview */
+.a4-document-sheet {
+  background: #ffffff;
+  color: #111827;
+  width: 100%;
+  max-width: 210mm;
+  min-height: 297mm;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Professional Print Stylesheet: Guaranteed 100% authentic crisp white paper output without website clutter */
+@page {
+  size: A4 portrait;
+  margin: 15mm 18mm 15mm 18mm;
+}
+
+@media print {
+  /* Reset browser color scheme and background */
+  html, body, #root, #top, main, #main-dossier-content {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide all website chrome, navigations, hero, footers, buttons */
+  .no-print, 
+  header, 
+  nav, 
+  footer, 
+  button, 
+  .interactive-controls,
+  #hero-container {
+    display: none !important;
+  }
+
+  /* Make sure printable containers take over cleanly */
+  #printable-cv, 
+  #printable-letter,
+  #printable-certificate-ai,
+  #printable-certificate-digcomp,
+  .printable-document {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* All nested containers within printable document */
+  .print-card, .a4-document-sheet {
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Force pure ink black typography for readability */
+  h1, h2, h3, h4, h5, h6, strong, b {
+    color: #000000 !important;
+    font-weight: 700 !important;
+  }
+
+  p, span, li, div, td {
+    color: #1f2937 !important;
+  }
+
+  /* Links render in clean dark gray/black without underline */
+  a {
+    color: #000000 !important;
+    text-decoration: none !important;
+  }
+
+  /* Subtle print borders */
+  .border-b, .border-t, .border-l, .border {
+    border-color: #d1d5db !important;
+  }
+
+  /* Avoid awkward page break inside items */
+  .print-break-avoid, 
+  li, 
+  .experience-item,
+  .education-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

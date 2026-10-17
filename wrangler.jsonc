@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-portfolio",
+  "main": "worker.js",
+  "compatibility_date": "2026-01-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "PORTFOLIO_KV",
+      "id": "0b855515d0a64ef3a7902465264a6d72"
+    }
+  ],
+  "build": {
+    "command": "npm run build"
+  }
+}
