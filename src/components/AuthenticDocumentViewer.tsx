@@ -98,7 +98,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
   const [renderError, setRenderError] = useState<string | null>(null);
   const [blobUrl, setBlobUrl] = useState<string>('');
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
-  const [viewEngine, setViewEngine] = useState<'canvas' | 'embed'>('canvas');
+  const [viewEngine, setViewEngine] = useState<'canvas' | 'embed'>('embed');
 
   const isImage = dataUrl.startsWith('data:image');
   const isPdf = !isImage;
@@ -118,61 +118,16 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
     }
   }, [dataUrl]);
 
-  // Load PDF Document via PDF.js
+  // PDFs are displayed with the browser's native viewer below. This is more
+  // reliable than rendering each page to canvas, which could leave a black area.
   useEffect(() => {
-    if (!isPdf || !dataUrl) {
+    if (isPdf && dataUrl) {
       setIsLoading(false);
-      return;
+      setRenderError(null);
+      setViewEngine('embed');
+    } else {
+      setIsLoading(false);
     }
-
-    let isCancelled = false;
-    setIsLoading(true);
-    setRenderError(null);
-
-    const loadDoc = async () => {
-      try {
-        let pdfData: Uint8Array;
-        if (dataUrl.includes('base64,')) {
-          const base64 = dataUrl.split('base64,')[1];
-          const raw = window.atob(base64);
-          pdfData = new Uint8Array(raw.length);
-          for (let i = 0; i < raw.length; i++) {
-            pdfData[i] = raw.charCodeAt(i);
-          }
-        } else {
-          const response = await fetch(dataUrl);
-          const buffer = await response.arrayBuffer();
-          pdfData = new Uint8Array(buffer);
-        }
-
-        const loadingTask = pdfjsLib.getDocument({
-          data: pdfData,
-          cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/cmaps/',
-          cMapPacked: true,
-        });
-
-        const doc = await loadingTask.promise;
-        if (isCancelled) return;
-
-        setPdfDoc(doc);
-        setNumPages(doc.numPages);
-        setIsLoading(false);
-      } catch (err: any) {
-        console.error('Error loading PDF document:', err);
-        if (!isCancelled) {
-          setRenderError(err?.message || 'Erro ao carregar o PDF');
-          setIsLoading(false);
-          // Fallback automatically to embed viewer
-          setViewEngine('embed');
-        }
-      }
-    };
-
-    loadDoc();
-
-    return () => {
-      isCancelled = true;
-    };
   }, [dataUrl, isPdf]);
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.2, 2.5));
@@ -245,7 +200,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
       </div>
 
       {/* Viewer Body Canvas */}
-      <div className="relative bg-slate-950/90 overflow-auto p-4 sm:p-8 flex flex-col items-center justify-start min-h-[500px] max-h-[850px]">
+      <div className="relative bg-white overflow-auto p-2 sm:p-4 flex flex-col items-center justify-start min-h-[500px] max-h-[850px]">
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-20 space-y-3">
             <RefreshCw className="w-8 h-8 text-blue-400 animate-spin" />
