@@ -80,8 +80,12 @@ const PdfPage: React.FC<{
   }, [pdf, pageNum, scale]);
 
   return (
-    <div className="w-full min-w-0 bg-white rounded-lg shadow-2xl overflow-x-auto overflow-y-hidden border border-slate-700/60 mb-6 flex justify-center">
-      <canvas ref={canvasRef} className="block max-w-none shrink-0" />
+    <div className="w-full min-w-0 bg-transparent overflow-x-auto overflow-y-hidden mb-6 flex justify-center">
+      <canvas
+        ref={canvasRef}
+        className="block max-w-none shrink-0 bg-white rounded-sm shadow-xl"
+        aria-label={`PDF page ${pageNum}`}
+      />
     </div>
   );
 };
