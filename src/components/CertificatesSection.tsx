@@ -248,7 +248,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ curren
       <div className="w-full flex justify-center">
         {currentCert?.customUploadedPdfUrl ? (
           /* EMBED REAL ORIGINAL PDF / IMAGE EXACTLY AS IT IS VIA AUTHENTIC CANVAS VIEWER */
-          <div id="cert-section-target" className="w-full max-w-4xl">
+          <div id="cert-section-target" className="w-full max-w-6xl">
             <AuthenticDocumentViewer
               dataUrl={currentCert.customUploadedPdfUrl}
               title={localizedTitle(currentCert)}

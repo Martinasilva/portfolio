@@ -37,9 +37,9 @@ const PdfPage: React.FC<{
         if (!canvas) return;
 
         const baseViewport = page.getViewport({ scale: 1 });
-        const availableWidth = Math.max(280, Math.min(820, (canvas.parentElement?.clientWidth || 820) - 24));
-        const fitScale = Math.min(scale, availableWidth / baseViewport.width);
-        const viewport = page.getViewport({ scale: fitScale });
+        // Use the requested zoom directly. Previously the fit-to-width cap silently
+        // cancelled zoom-in, so the percentage changed without enlarging the PDF.
+        const viewport = page.getViewport({ scale });
         const context = canvas.getContext('2d');
         if (!context) return;
 
@@ -80,8 +80,8 @@ const PdfPage: React.FC<{
   }, [pdf, pageNum, scale]);
 
   return (
-    <div className="bg-white rounded-lg shadow-2xl overflow-hidden border border-slate-700/60 mb-6 flex justify-center">
-      <canvas ref={canvasRef} className="block max-w-full" />
+    <div className="w-full min-w-0 bg-white rounded-lg shadow-2xl overflow-x-auto overflow-y-hidden border border-slate-700/60 mb-6 flex justify-center">
+      <canvas ref={canvasRef} className="block max-w-none shrink-0" />
     </div>
   );
 };
@@ -94,7 +94,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
   lang = 'pt'
 }) => {
   const [numPages, setNumPages] = useState<number>(0);
-  const [scale, setScale] = useState<number>(1.15);
+  const [scale, setScale] = useState<number>(1.0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [renderError, setRenderError] = useState<string | null>(null);
   const [blobUrl, setBlobUrl] = useState<string>('');
@@ -209,9 +209,9 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
     };
   }, [dataUrl, isPdf, fileName, lang]);
 
-  const handleZoomIn = () => setScale(prev => Math.min(prev + 0.2, 2.5));
-  const handleZoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.6));
-  const handleResetZoom = () => setScale(1.15);
+  const handleZoomIn = () => setScale(prev => Math.min(Math.round((prev + 0.15) * 100) / 100, 3.0));
+  const handleZoomOut = () => setScale(prev => Math.max(Math.round((prev - 0.15) * 100) / 100, 0.4));
+  const handleResetZoom = () => setScale(1.0);
 
 
   return (
@@ -313,7 +313,7 @@ export const AuthenticDocumentViewer: React.FC<AuthenticDocumentViewerProps> = (
 
         {/* PDF CANVAS RENDERER */}
         {isPdf && viewEngine === 'canvas' && pdfDoc && (
-          <div className="space-y-4 flex flex-col items-center w-full">
+          <div className="space-y-4 flex flex-col items-center w-full min-w-0">
             {Array.from({ length: numPages }, (_, index) => (
               <PdfPage
                 key={`page-${index + 1}-${scale}`}
